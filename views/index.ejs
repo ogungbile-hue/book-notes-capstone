@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROP Book Notes Archive</title>
+  <!-- Links cleanly to your newly separated stylesheet asset -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <h1>PROP's Book Notes Clone</h1>
+    <p>Centralized collection of architectural breakdowns, summaries, and ratings.</p>
+    <nav class="sorting-nav">
+      <span>Sort entries by:</span>
+      <a href="/?sort=recency" class="<%= currentSort === 'recency' ? 'active' : '' %>">Recency</a> | 
+      <a href="/?sort=rating" class="<%= currentSort === 'rating' ? 'active' : '' %>">Rating</a> | 
+      <a href="/?sort=title" class="<%= currentSort === 'title' ? 'active' : '' %>">Title</a>
+    </nav>
+  </header>
+
+  <!-- CREATE ENTRY FORM -->
+  <section class="add-form-container">
+    <h3>Add a New Book Analysis</h3>
+    <form action="/add" method="POST">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group"><label>Book Title</label><input type="text" name="title" required placeholder="e.g. Sapiens"></div>
+        <div class="form-group"><label>Author</label><input type="text" name="author" required placeholder="Yuval Noah Harari"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group"><label>ISBN</label><input type="text" name="isbn" required placeholder="9780062316097"></div>
+        <!-- Constraint boundaries expanded to 10 here -->
+        <div class="form-group"><label>Rating (1-10 Scale)</label><input type="number" name="rating" min="1" max="10" required placeholder="10"></div>
+      </div>
+      <div class="form-group"><label>Salient Notes & Insights</label><textarea name="notes" rows="4" required placeholder="Type notes..."></textarea></div>
+      <button type="submit" class="btn-main">Persist Entry to Database</button>
+    </form>
+  </section>
+
+  <!-- RENDERING LOOP -->
+  <main>
+    <% books.forEach(function(book) { %>
+      <article class="book-card">
+        <div>
+          <img src="<%= book.coverUrl %>" class="book-cover" alt="Cover" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x225?text=No+Cover';">
+        </div>
+        <div class="book-details">
+          <h2 class="book-title"><%= book.title %></h2>
+          <h3 class="book-author">by <%= book.author %></h3>
+          <div class="book-meta">
+            <!-- Corrected display scale string to mirror your database migration changes -->
+            <span class="book-rating">Rating: <strong><%= book.rating %>/10</strong></span> | 
+            <span class="book-date">Read on: <%= book.formattedDate %></span>
+          </div>
+          <p class="book-notes"><%= book.notes %></p>
+
+          <div class="card-actions">
+            <button class="btn-secondary" onclick="toggleEditZone('<%= book.id %>')">Edit Notes</button>
+            <form action="/delete" method="POST" onsubmit="return confirm('Execute deletion cascade?');">
+              <input type="hidden" name="book_id" value="<%= book.id %>">
+              <button type="submit" class="btn-danger">Delete</button>
+            </form>
+          </div>
+
+          <!-- HIDDEN EDIT ZONE -->
+          <div class="edit-zone" id="edit-zone-<%= book.id %>">
+            <form action="/edit" method="POST">
+              <input type="hidden" name="book_id" value="<%= book.id %>">
+              <div class="form-group"><label>Update Rating (1-10)</label><input type="number" name="rating" min="1" max="10" value="<%= book.rating %>" required></div>
+              <div class="form-group"><label>Update Summary</label><textarea name="notes" rows="4" required><%= book.notes %></textarea></div>
+              <button type="submit" class="btn-main" style="padding:6px 12px; font-size:0.85rem;">Save Modification</button>
+            </form>
+          </div>
+        </div>
+      </article>
+    <% }); %>
+  </main>
+
+  <script>
+    function toggleEditZone(id) {
+      const zone = document.getElementById(`edit-zone-${id}`);
+      zone.style.display = zone.style.display === 'block' ? 'none' : 'block';
+    }
+  </script>
+</body>
+</html>
