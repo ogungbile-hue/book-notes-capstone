@@ -1,4 +1,6 @@
--- 1. Create the 'books' table containing core structural bibliographic records
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS books CASCADE;
+
 CREATE TABLE books (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -6,12 +8,10 @@ CREATE TABLE books (
     isbn VARCHAR(13) UNIQUE NOT NULL
 );
 
--- 2. Create the 'reviews' table linked back to our books records.
--- We use CHECK constraints to ensure ratings are bounded within Derek Sivers' iconic 1-10 scale.
 CREATE TABLE reviews (
     id SERIAL PRIMARY KEY,
-    book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
-    rating INTEGER CHECK (rating BETWEEN 1 AND 10) NOT NULL,
-    notes TEXT,
+    book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 10), -- Locked into the 1-10 scale
+    notes TEXT NOT NULL,
     date_read DATE NOT NULL DEFAULT CURRENT_DATE
 );
